@@ -9,5 +9,4 @@ func main() {
 	r := router.SetupRouter()
 	c := config.LoadConfig()
 	_ = r.Run(c.Port)
-
 }

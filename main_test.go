@@ -4,13 +4,14 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"srebootcamp/internal/router"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHealthCheck(t *testing.T) {
-	router := setupRouter()
+	router := router.SetupRouter()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequestWithContext(context.Background(), "GET", "/healthcheck", nil)

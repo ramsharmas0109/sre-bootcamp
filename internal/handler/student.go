@@ -5,29 +5,16 @@ import (
 	"net/http"
 	"strconv"
 
-	"srebootcamp/internal/config"
 	"srebootcamp/internal/db"
 	"srebootcamp/internal/model"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/lib/pq"
 )
 
 func GetAllStudents(c *gin.Context) {
 	var students []model.Student
-	config := config.LoadConfig()
 
-	cfg := pq.Config{
-		Host:     config.DBHost,
-		Port:     uint16(config.DBPort),
-		User:     config.DBUser,
-		Password: config.DBPass,
-		Database: config.DBName,
-		SSLMode:  pq.SSLMode(config.SSLMode),
-	}
-
-	db := db.ConnectDB(cfg)
+	db := db.InitDB()
 
 	rows, err := db.Query("SELECT * FROM students_data;")
 	if err != nil {
@@ -52,20 +39,11 @@ func GetAllStudents(c *gin.Context) {
 
 func GetStudentByID(c *gin.Context) {
 	var students []model.Student
-	config := config.LoadConfig()
 
-	cfg := pq.Config{
-		Host:     config.DBHost,
-		Port:     uint16(config.DBPort),
-		User:     config.DBUser,
-		Password: config.DBPass,
-		Database: config.DBName,
-		SSLMode:  pq.SSLMode(config.SSLMode),
-	}
-
-	db := db.ConnectDB(cfg)
+	db := db.InitDB()
 	id := c.Param("id")
 	temp, _ := strconv.Atoi(id)
+
 	rows, err := db.Query("SELECT * FROM students_data WHERE student_id = $1;", temp)
 	if err != nil {
 		log.Fatal(err)
@@ -88,18 +66,9 @@ func GetStudentByID(c *gin.Context) {
 
 func CreateStudent(c *gin.Context) {
 	var student model.Student
-	config := config.LoadConfig()
 
-	cfg := pq.Config{
-		Host:     config.DBHost,
-		Port:     uint16(config.DBPort),
-		User:     config.DBUser,
-		Password: config.DBPass,
-		Database: config.DBName,
-		SSLMode:  pq.SSLMode(config.SSLMode),
-	}
+	db := db.InitDB()
 
-	db := db.ConnectDB(cfg)
 	err := c.ShouldBindJSON(&student)
 	if err != nil {
 		//log.Fatal(err)
@@ -120,23 +89,12 @@ func CreateStudent(c *gin.Context) {
 
 	defer rows.Close()
 	c.JSON(http.StatusOK, gin.H{"insert": true})
-
 }
 
 func UpdateStudent(c *gin.Context) {
 	var student, studentFromDB model.Student
-	config := config.LoadConfig()
+	db := db.InitDB()
 
-	cfg := pq.Config{
-		Host:     config.DBHost,
-		Port:     uint16(config.DBPort),
-		User:     config.DBUser,
-		Password: config.DBPass,
-		Database: config.DBName,
-		SSLMode:  pq.SSLMode(config.SSLMode),
-	}
-
-	db := db.ConnectDB(cfg)
 	err := c.ShouldBindJSON(&student)
 	if err != nil {
 		log.Print(err)
@@ -184,18 +142,7 @@ func UpdateStudent(c *gin.Context) {
 }
 
 func DeleteStudentByID(c *gin.Context) {
-	config := config.LoadConfig()
-
-	cfg := pq.Config{
-		Host:     config.DBHost,
-		Port:     uint16(config.DBPort),
-		User:     config.DBUser,
-		Password: config.DBPass,
-		Database: config.DBName,
-		SSLMode:  pq.SSLMode(config.SSLMode),
-	}
-
-	db := db.ConnectDB(cfg)
+	db := db.InitDB()
 	id := c.Param("id")
 	temp, _ := strconv.Atoi(id)
 	rows, err := db.Query("DELETE FROM students_data WHERE student_id = $1;", temp)

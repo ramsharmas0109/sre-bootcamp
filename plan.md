@@ -81,11 +81,7 @@ When we make request to certain endpoint
 
 psql -h localhost -p 5432 -d students -U postgres
 
-
-
 main.go -> server setup, db conn, handler define, handler Db querier. 
 main -> handler.go, router.go, db.go, model.go
-
-
 
 main -> router pkg (SetupRouter) -> handler pkg (diff handlers) -> db & models pkg with different funcs

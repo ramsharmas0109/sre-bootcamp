@@ -5,8 +5,8 @@ import (
 	"os"
 	"strconv"
 
-	"srebootcamp/internal/model"
 	"github.com/joho/godotenv"
+	"srebootcamp/internal/model"
 )
 
 func convert(input string) int {
@@ -19,11 +19,10 @@ func convert(input string) int {
 }
 
 func LoadConfig() model.Config {
-	// it will try loading config for DB from env variables.
 	err := godotenv.Load()
-  	if err != nil {
-    	log.Fatal("Error loading .env file")
-  	}
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	cfg := model.Config{}
 
