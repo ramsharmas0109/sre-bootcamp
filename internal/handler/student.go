@@ -1,21 +1,23 @@
 package handler
 
 import (
+	"database/sql"
 	"net/http"
 	"strconv"
 
-	"srebootcamp/internal/db"
 	"srebootcamp/internal/model"
 
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllStudents(c *gin.Context) {
+type Handler struct {
+	DB *sql.DB
+}
+
+func (h *Handler) GetAllStudents(c *gin.Context) {
 	var students []model.Student
 
-	db := db.InitDB()
-
-	rows, err := db.Query("SELECT * FROM students_data;")
+	rows, err := h.DB.Query("SELECT * FROM students_data;")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -41,10 +43,9 @@ func GetAllStudents(c *gin.Context) {
 
 }
 
-func GetStudentByID(c *gin.Context) {
+func (h *Handler) GetStudentByID(c *gin.Context) {
 	var students []model.Student
 
-	db := db.InitDB()
 	id := c.Param("id")
 	tempID, err := strconv.Atoi(id)
 	if err != nil {
@@ -52,7 +53,7 @@ func GetStudentByID(c *gin.Context) {
 		return
 	}
 
-	rows, err := db.Query("SELECT * FROM students_data WHERE student_id = $1;", tempID)
+	rows, err := h.DB.Query("SELECT * FROM students_data WHERE student_id = $1;", tempID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -80,10 +81,8 @@ func GetStudentByID(c *gin.Context) {
 	}
 }
 
-func CreateStudent(c *gin.Context) {
+func (h *Handler) CreateStudent(c *gin.Context) {
 	var student model.Student
-
-	db := db.InitDB()
 
 	err := c.ShouldBindJSON(&student)
 	if err != nil {
@@ -91,7 +90,7 @@ func CreateStudent(c *gin.Context) {
 		return
 	}
 
-	rows, err := db.Query(
+	rows, err := h.DB.Query(
 		`INSERT INTO students_data (first_name, last_name, class, gender)
     	 VALUES ($1, $2, $3, $4)`, student.FirstName, student.LastName, student.Class, student.Gender,
 	)
@@ -104,9 +103,8 @@ func CreateStudent(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"insert": true})
 }
 
-func UpdateStudent(c *gin.Context) {
+func (h *Handler) UpdateStudent(c *gin.Context) {
 	var student, studentFromDB model.Student
-	db := db.InitDB()
 
 	err := c.ShouldBindJSON(&student)
 	if err != nil {
@@ -120,7 +118,7 @@ func UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	rows, err := db.Query("SELECT * FROM students_data WHERE student_id = $1;", tempID)
+	rows, err := h.DB.Query("SELECT * FROM students_data WHERE student_id = $1;", tempID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -154,7 +152,7 @@ func UpdateStudent(c *gin.Context) {
 		studentFromDB.Gender = student.Gender
 	}
 
-	rows, err = db.Query("UPDATE students_data SET class = $4, gender = $5, last_name = $3, first_name = $2 WHERE student_id = $1;", tempID, studentFromDB.FirstName, studentFromDB.LastName, studentFromDB.Class, studentFromDB.Gender)
+	rows, err = h.DB.Query("UPDATE students_data SET class = $4, gender = $5, last_name = $3, first_name = $2 WHERE student_id = $1;", tempID, studentFromDB.FirstName, studentFromDB.LastName, studentFromDB.Class, studentFromDB.Gender)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -165,8 +163,7 @@ func UpdateStudent(c *gin.Context) {
 
 }
 
-func DeleteStudentByID(c *gin.Context) {
-	db := db.InitDB()
+func (h *Handler) DeleteStudentByID(c *gin.Context) {
 	id := c.Param("id")
 	tempID, err := strconv.Atoi(id)
 	if err != nil {
@@ -174,7 +171,7 @@ func DeleteStudentByID(c *gin.Context) {
 		return
 	}
 
-	rows, err := db.Query("DELETE FROM students_data WHERE student_id = $1;", tempID)
+	rows, err := h.DB.Query("DELETE FROM students_data WHERE student_id = $1;", tempID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

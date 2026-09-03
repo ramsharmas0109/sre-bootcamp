@@ -3,9 +3,9 @@ package db
 import (
 	"database/sql"
 	"log"
-	"srebootcamp/internal/config"
+	"srebootcamp/internal/model"
 
-	"github.com/lib/pq" // To register the driver.
+	"github.com/lib/pq"
 )
 
 func ConnectDB(cfg pq.Config) *sql.DB {
@@ -13,12 +13,8 @@ func ConnectDB(cfg pq.Config) *sql.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Create connection pool.
 	db := sql.OpenDB(c)
-	// defer db.Close()
 
-	// Make sure it works.
 	err = db.Ping()
 	if err != nil {
 		log.Fatal(err)
@@ -27,9 +23,7 @@ func ConnectDB(cfg pq.Config) *sql.DB {
 	return db
 }
 
-func InitDB() *sql.DB {
-	config := config.LoadConfig()
-
+func InitDB(config model.Config) *sql.DB {
 	cfg := pq.Config{
 		Host:     config.DBHost,
 		Port:     uint16(config.DBPort),
@@ -44,5 +38,3 @@ func InitDB() *sql.DB {
 	return db
 
 }
-
-// user -> config -> connector -> db connect -> db pointer -> db query
