@@ -90,7 +90,7 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
-	rows, err := h.DB.Query(
+	rows, err := h.DB.ExecContext(c,
 		`INSERT INTO students_data (first_name, last_name, class, gender)
     	 VALUES ($1, $2, $3, $4)`, student.FirstName, student.LastName, student.Class, student.Gender,
 	)
@@ -99,8 +99,14 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
-	defer rows.Close()
-	c.JSON(http.StatusCreated, gin.H{"insert": true})
+	var rowsAffected int64
+	rowsAffected, err = rows.RowsAffected()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"student_insert": rowsAffected})
 }
 
 func (h *Handler) UpdateStudent(c *gin.Context) {
@@ -118,7 +124,7 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	rows, err := h.DB.Query("SELECT * FROM students_data WHERE student_id = $1;", tempID)
+	rows, err := h.DB.QueryContext(c, "SELECT * FROM students_data WHERE student_id = $1;", tempID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -136,6 +142,8 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 		return
 	}
 
+	defer rows.Close()
+
 	if student.Class != 0 {
 		studentFromDB.Class = student.Class
 	}
@@ -152,14 +160,20 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 		studentFromDB.Gender = student.Gender
 	}
 
-	rows, err = h.DB.Query("UPDATE students_data SET class = $4, gender = $5, last_name = $3, first_name = $2 WHERE student_id = $1;", tempID, studentFromDB.FirstName, studentFromDB.LastName, studentFromDB.Class, studentFromDB.Gender)
+	res, err := h.DB.ExecContext(c, "UPDATE students_data SET class = $4, gender = $5, last_name = $3, first_name = $2 WHERE student_id = $1;", tempID, studentFromDB.FirstName, studentFromDB.LastName, studentFromDB.Class, studentFromDB.Gender)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	defer rows.Close()
-	c.JSON(http.StatusOK, gin.H{"update": true})
+	var rowsUpdated int64
+	rowsUpdated, err = res.RowsAffected()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"rows_update": rowsUpdated})
 
 }
 
@@ -171,12 +185,18 @@ func (h *Handler) DeleteStudentByID(c *gin.Context) {
 		return
 	}
 
-	rows, err := h.DB.Query("DELETE FROM students_data WHERE student_id = $1;", tempID)
+	rows, err := h.DB.ExecContext(c, "DELETE FROM students_data WHERE student_id = $1;", tempID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	defer rows.Close()
 
-	c.JSON(http.StatusOK, gin.H{"delete": true})
+	var rowsAffected int64
+	rowsAffected, err = rows.RowsAffected()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"rows_affected": rowsAffected})
 }
