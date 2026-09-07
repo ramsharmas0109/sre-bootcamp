@@ -16,8 +16,8 @@ type Handler struct {
 
 func (h *Handler) GetAllStudents(c *gin.Context) {
 	var students []model.Student
-
-	rows, err := h.DB.Query("SELECT * FROM students_data;")
+	
+	rows, err := h.DB.QueryContext(c, "SELECT student_id, first_name, last_name, class, gender FROM students_data;")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -25,7 +25,6 @@ func (h *Handler) GetAllStudents(c *gin.Context) {
 
 	for rows.Next() {
 		var student model.Student
-		// Pass pointers to rows.Scan matching the SELECT column order
 		err := rows.Scan(&student.ID, &student.FirstName, &student.LastName, &student.Class, &student.Gender)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -44,8 +43,7 @@ func (h *Handler) GetAllStudents(c *gin.Context) {
 }
 
 func (h *Handler) GetStudentByID(c *gin.Context) {
-	var students []model.Student
-
+	var student model.Student
 	id := c.Param("id")
 	tempID, err := strconv.Atoi(id)
 	if err != nil {
@@ -53,32 +51,18 @@ func (h *Handler) GetStudentByID(c *gin.Context) {
 		return
 	}
 
-	rows, err := h.DB.Query("SELECT * FROM students_data WHERE student_id = $1;", tempID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	rows := h.DB.QueryRowContext(c, "SELECT student_id, first_name, last_name, class, gender FROM students_data WHERE student_id = $1;", tempID)
+	err = rows.Scan(&student.ID, &student.FirstName, &student.LastName, &student.Class, &student.Gender)
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
 		return
 	}
 
-	for rows.Next() {
-		var student model.Student
-		err := rows.Scan(&student.ID, &student.FirstName, &student.LastName, &student.Class, &student.Gender)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		students = append(students, student)
-	}
-	if err = rows.Err(); err != nil {
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	defer rows.Close()
-	if len(students) > 0 {
-		c.JSON(http.StatusOK, students)
-	} else {
-		c.JSON(http.StatusNotFound, nil)
-	}
+	c.JSON(http.StatusOK, student)
 }
 
 func (h *Handler) CreateStudent(c *gin.Context) {
@@ -124,7 +108,7 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	rows, err := h.DB.QueryContext(c, "SELECT * FROM students_data WHERE student_id = $1;", tempID)
+	rows, err := h.DB.QueryContext(c, "SELECT student_id, first_name, last_name, class, gender FROM students_data WHERE student_id = $1;", tempID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -173,6 +157,10 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 		return
 	}
 
+	if rowsUpdated == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"rows_update": rowsUpdated})
 
 }
@@ -195,6 +183,11 @@ func (h *Handler) DeleteStudentByID(c *gin.Context) {
 	rowsAffected, err = rows.RowsAffected()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
 		return
 	}
 
