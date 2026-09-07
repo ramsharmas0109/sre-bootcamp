@@ -4,6 +4,9 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"srebootcamp/internal/config"
+	"srebootcamp/internal/db"
+	"srebootcamp/internal/handler"
 	"srebootcamp/internal/router"
 	"testing"
 
@@ -11,12 +14,17 @@ import (
 )
 
 func TestHealthCheck(t *testing.T) {
-	router := router.SetupRouter()
+	c := config.LoadConfig()
+	dbConn := db.InitDB(c)
+	defer dbConn.Close()
+
+	h := &handler.Handler{DB: dbConn}
+	r := router.SetupRouter(h)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequestWithContext(context.Background(), "GET", "/healthcheck", nil)
-	router.ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "ok", w.Body.String())
+	assert.Equal(t, "\"ok\"", w.Body.String())
 }
