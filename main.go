@@ -2,17 +2,27 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
-	"github.com/projectdiscovery/gologger"
 	"srebootcamp/internal/config"
 	"srebootcamp/internal/db"
 	"srebootcamp/internal/handler"
 	"srebootcamp/internal/router"
+
+	"github.com/projectdiscovery/gologger"
 )
+
+type gologgerWriter struct{}
+
+func (gologgerWriter) Write(p []byte) (int, error) {
+	gologger.Error().Msg(strings.TrimSpace(string(p)))
+	return len(p), nil
+}
 
 func main() {
 	c := config.LoadConfig()
@@ -23,8 +33,9 @@ func main() {
 	r := router.SetupRouter(h)
 
 	srv := &http.Server{
-		Addr:    c.Port,
-		Handler: r,
+		Addr:     c.Port,
+		Handler:  r,
+		ErrorLog: log.New(gologgerWriter{}, "", 0),
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
