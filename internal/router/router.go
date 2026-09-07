@@ -1,13 +1,40 @@
 package router
 
 import (
+	"time"
+
 	"srebootcamp/internal/handler"
 
 	"github.com/gin-gonic/gin"
+	"github.com/projectdiscovery/gologger"
 )
 
+func requestLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+		path := c.Request.URL.Path
+		if raw := c.Request.URL.RawQuery; raw != "" {
+			path += "?" + raw
+		}
+
+		c.Next()
+
+		status := c.Writer.Status()
+		latency := time.Since(start)
+		method := c.Request.Method
+		ip := c.ClientIP()
+
+		gologger.Info().Msgf("method=%s path=%s status=%d latency=%s ip=%s", method, path, status, latency, ip)
+	}
+}
+
 func SetupRouter(h *handler.Handler) *gin.Engine {
-	r := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.Use(requestLogger())
+
 	r.GET("/healthcheck", handler.HealthCheck)
 
 	rg := r.Group("/api/v1")

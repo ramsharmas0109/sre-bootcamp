@@ -2,22 +2,22 @@ package db
 
 import (
 	"database/sql"
-	"log"
 	"srebootcamp/internal/model"
 
 	"github.com/lib/pq"
+	"github.com/projectdiscovery/gologger"
 )
 
 func ConnectDB(cfg pq.Config) *sql.DB {
 	c, err := pq.NewConnectorConfig(cfg)
 	if err != nil {
-		log.Fatal(err)
+		gologger.Fatal().Msgf("%v", err)
 	}
 	db := sql.OpenDB(c)
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		gologger.Fatal().Msgf("%v", err)
 	}
 
 	return db

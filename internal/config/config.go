@@ -1,19 +1,18 @@
 package config
 
 import (
-	"log"
 	"os"
 	"strconv"
 
 	"github.com/joho/godotenv"
+	"github.com/projectdiscovery/gologger"
 	"srebootcamp/internal/model"
 )
 
 func convert(input string) int {
 	i, err := strconv.Atoi(input)
-
 	if err != nil {
-		log.Fatal(err.Error())
+		gologger.Fatal().Msg(err.Error())
 	}
 	return i
 }
@@ -21,7 +20,7 @@ func convert(input string) int {
 func LoadConfig() model.Config {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		gologger.Fatal().Msg("Error loading .env file")
 	}
 
 	cfg := model.Config{}
