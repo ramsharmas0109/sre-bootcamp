@@ -1,0 +1,195 @@
+package handler
+
+import (
+	"database/sql"
+	"net/http"
+	"strconv"
+
+	"srebootcamp/internal/model"
+
+	"github.com/gin-gonic/gin"
+)
+
+type Handler struct {
+	DB *sql.DB
+}
+
+func (h *Handler) GetAllStudents(c *gin.Context) {
+	var students []model.Student
+	
+	rows, err := h.DB.QueryContext(c, "SELECT student_id, first_name, last_name, class, gender FROM students_data;")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	for rows.Next() {
+		var student model.Student
+		err := rows.Scan(&student.ID, &student.FirstName, &student.LastName, &student.Class, &student.Gender)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		students = append(students, student)
+	}
+	if err = rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	c.JSON(http.StatusOK, students)
+
+}
+
+func (h *Handler) GetStudentByID(c *gin.Context) {
+	var student model.Student
+	id := c.Param("id")
+	tempID, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	rows := h.DB.QueryRowContext(c, "SELECT student_id, first_name, last_name, class, gender FROM students_data WHERE student_id = $1;", tempID)
+	err = rows.Scan(&student.ID, &student.FirstName, &student.LastName, &student.Class, &student.Gender)
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, student)
+}
+
+func (h *Handler) CreateStudent(c *gin.Context) {
+	var student model.Student
+
+	err := c.ShouldBindJSON(&student)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	rows, err := h.DB.ExecContext(c,
+		`INSERT INTO students_data (first_name, last_name, class, gender)
+    	 VALUES ($1, $2, $3, $4)`, student.FirstName, student.LastName, student.Class, student.Gender,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var rowsAffected int64
+	rowsAffected, err = rows.RowsAffected()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"student_insert": rowsAffected})
+}
+
+func (h *Handler) UpdateStudent(c *gin.Context) {
+	var student, studentFromDB model.Student
+
+	err := c.ShouldBindJSON(&student)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	id := c.Param("id")
+	tempID, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	rows, err := h.DB.QueryContext(c, "SELECT student_id, first_name, last_name, class, gender FROM students_data WHERE student_id = $1;", tempID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	for rows.Next() {
+		err = rows.Scan(&studentFromDB.ID, &studentFromDB.FirstName, &studentFromDB.LastName, &studentFromDB.Class, &studentFromDB.Gender)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+	if err = rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	defer rows.Close()
+
+	if student.Class != 0 {
+		studentFromDB.Class = student.Class
+	}
+
+	if student.FirstName != "" {
+		studentFromDB.FirstName = student.FirstName
+	}
+
+	if student.LastName != "" {
+		studentFromDB.LastName = student.LastName
+	}
+
+	if student.Gender != "" {
+		studentFromDB.Gender = student.Gender
+	}
+
+	res, err := h.DB.ExecContext(c, "UPDATE students_data SET class = $4, gender = $5, last_name = $3, first_name = $2 WHERE student_id = $1;", tempID, studentFromDB.FirstName, studentFromDB.LastName, studentFromDB.Class, studentFromDB.Gender)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var rowsUpdated int64
+	rowsUpdated, err = res.RowsAffected()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if rowsUpdated == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"rows_update": rowsUpdated})
+
+}
+
+func (h *Handler) DeleteStudentByID(c *gin.Context) {
+	id := c.Param("id")
+	tempID, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	rows, err := h.DB.ExecContext(c, "DELETE FROM students_data WHERE student_id = $1;", tempID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var rowsAffected int64
+	rowsAffected, err = rows.RowsAffected()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"rows_affected": rowsAffected})
+}
