@@ -10,3 +10,9 @@ jobs:
       - name: Say hello
         run: echo "Hello from pipeline"
 
+  world:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say World
+        run: echo "World from pipeline"
+
