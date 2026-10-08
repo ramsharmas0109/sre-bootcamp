@@ -21,6 +21,7 @@ jobs:
 
       - name: Test
         run: make test
+        environment: test 
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PASS: ${{ secrets.DB_PASS }}
