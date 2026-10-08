@@ -6,6 +6,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    environment: test     
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -21,7 +22,6 @@ jobs:
 
       - name: Test
         run: make test
-        environment: test 
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PASS: ${{ secrets.DB_PASS }}
