@@ -1,4 +1,4 @@
-# # - include .env
+# -include .env
 # export
 
 POSTGRESQL_URL = postgres://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(SSL_MODE)
@@ -6,7 +6,7 @@ TEST_POSTGRESQL_URL = postgres://postgres:dummy@localhost:5432/postgres?sslmode=
 
 test_db_up:
 	@echo "Starting test DB..."
-	docker compose up -d test_db
+	docker compose -f docker-compose.local.yaml up -d test_db
 	@echo "Waiting for test DB to be ready..."
 	@for i in $$(seq 30); do docker compose exec -T test_db pg_isready -U postgres > /dev/null 2>&1 && exit 0; sleep 1; done; echo "Test DB did not become ready in time"; exit 1
 
