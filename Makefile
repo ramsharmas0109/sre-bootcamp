@@ -1,5 +1,5 @@
-- include .env
-export
+# # - include .env
+# export
 
 POSTGRESQL_URL = postgres://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(SSL_MODE)
 TEST_POSTGRESQL_URL = postgres://postgres:dummy@localhost:5432/postgres?sslmode=disable
