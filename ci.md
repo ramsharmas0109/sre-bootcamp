@@ -1,8 +1,8 @@
 1. Code
-2. Build Binary -> make build
-3. Test DB up -> make test_db_up
-4. Test DB migrate make migrate_test_db
-5. Run Tests -> make test -> 3 & 4 
+2. Build Binary
+3. Test DB up
+4. Test DB migrate 
+5. Run Tests 
 6. Docker build
 7. Docker tag
 8. Docker push
