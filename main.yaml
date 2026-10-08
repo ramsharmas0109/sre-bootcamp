@@ -1,0 +1,11 @@
+name: Go Build and Test
+
+on:
+  push:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: 
+        run:
