@@ -7,8 +7,8 @@ TEST_POSTGRESQL_URL = postgres://postgres:dummy@localhost:5432/postgres?sslmode=
 test_db_up:
 	@echo "Starting test DB..."
 	docker compose -f docker-compose.local.yaml up -d test_db
-	@echo "Waiting for test DB to be ready..."
-	@for i in $$(seq 30); do docker compose exec -T test_db pg_isready -U postgres > /dev/null 2>&1 && exit 0; sleep 2; done; echo "Test DB did not become ready in time"; exit 1
+# 	@echo "Waiting for test DB to be ready..."
+# 	@for i in $$(seq 30); do docker compose exec -T test_db pg_isready -U postgres > /dev/null 2>&1 && exit 0; sleep 2; done; echo "Test DB did not become ready in time"; exit 1
 
 test_db_down:
 	@echo "Stopping test DB..."
