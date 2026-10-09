@@ -33,7 +33,7 @@ jobs:
         uses: docker/setup-docker-action@v5
       - name: Build App
         run: make build
-      - name: Setup DB
+      - name: Start DB
         run: | 
           make test_db_up;
-          make migrate_test_up
+
