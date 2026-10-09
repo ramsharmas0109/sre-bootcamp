@@ -41,10 +41,13 @@ jobs:
         run: make test_db_up;
 
       - name: Check if DB is up
+        timeout-minutes: 2
         run: |
-          until pg_isready --quiet; do
-              sleep 1s
+          until pg_isready -h $TEST_DB_HOST -p $TEST_DB_PORT -U $TEST_DB_USER; do
+            echo "Waiting for Postgres to be ready..."
+            sleep 1
           done
+          echo "Postgres is up!"
 
         env:
           TEST_DB_HOST: 'localhost'

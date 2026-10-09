@@ -31,3 +31,10 @@ bin/
 # Editor/IDE
 # .idea/
 # .vscode/
+
+Dockerfile.DB
+Dockerfile.GO
+Dockerfile.Ubuntu
+open-issues.md
+bugs.md
+history
