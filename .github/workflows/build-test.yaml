@@ -1,6 +1,6 @@
 # 1. down the application code- git clone -> DONE
 # 2. go compiler should be installed on my machine - brew install -> DONE
-# 3. setup docker
+# 3. setup docker --> DONE
 # 4. install dependencies- go mod tidy -> DONE
 # 5. build the app - make build
 # 6. database up and migrate db- make test_db_up, make migrate_test_up.
@@ -31,3 +31,5 @@ jobs:
           go-version-file: 'go.mod'
       - name: Setup Docker
         uses: docker/setup-docker-action@v5
+      - name: Build App
+        run: make build
