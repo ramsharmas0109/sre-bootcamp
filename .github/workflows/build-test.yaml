@@ -31,11 +31,16 @@ jobs:
           go-version-file: 'go.mod'
       - name: Setup Docker
         uses: docker/setup-docker-action@v5
+      - name: Install golang-migrate CLI
+        run: |
+          curl -L https://github.com | tar xvz
+          sudo mv migrate /usr/local/bin/migrate
+        
       - name: Build App
         run: make build
       - name: Start DB
         run: | 
           make test_db_up;
-      - name: Run DB Migrations DB
+      - name: Run DB Migrations
         run: | 
           make migrate_test_up;
