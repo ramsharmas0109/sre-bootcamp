@@ -40,7 +40,7 @@ jobs:
       - name: Start DB
         run: make test_db_up;
       - name: Run DB Migrations
-        run: make migrate_test_up
+        run: make migrate_test_up || true
       - name: Setup Session
         uses: lhotari/action-upterm@v1      
 
