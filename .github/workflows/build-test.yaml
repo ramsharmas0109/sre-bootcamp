@@ -42,4 +42,6 @@ jobs:
           make test_db_up;
       - name: Run DB Migrations
         run: | 
+          docker ps;
+          telnet localhost 5432;
           make migrate_test_up;
