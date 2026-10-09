@@ -1,7 +1,7 @@
-# 1. down the application code- git clone 
-# 2. go compiler should be installed on my machine - brew install
+# 1. down the application code- git clone -> DONE
+# 2. go compiler should be installed on my machine - brew install -> DONE
 # 3. setup docker
-# 4. install dependencies- go mod tidy
+# 4. install dependencies- go mod tidy -> DONE
 # 5. build the app - make build
 # 6. database up and migrate db- make test_db_up, make migrate_test_up.
 # 7. pass env variables to test file
@@ -25,3 +25,8 @@ jobs:
     steps: 
       - name: Clone Code
         uses: actions/checkout@v7
+      - name: Setup Go
+        uses: actions/setup-go@v7
+          with:
+            go-version: '1.26'
+            go-version-file: 'go.mod'
