@@ -40,8 +40,10 @@ jobs:
       - name: Start DB
         run: | 
           make test_db_up;
-      - name: Run DB Migrations
-        run: | 
-          docker ps;
-          telnet localhost 5432;
-          make migrate_test_up;
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3          
+      # - name: Run DB Migrations
+      #   run: | 
+          # docker ps;
+          # telnet localhost 5432;
+          # make migrate_test_up;
