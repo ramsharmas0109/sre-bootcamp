@@ -28,5 +28,6 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
-          go-version: '1.26'
           go-version-file: 'go.mod'
+      - name: Setup Docker
+        uses: docker/setup-docker-action@v5
