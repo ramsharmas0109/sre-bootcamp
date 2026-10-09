@@ -36,4 +36,6 @@ jobs:
       - name: Start DB
         run: | 
           make test_db_up;
-
+      - name: Run DB Migrations DB
+        run: | 
+          make migrate_test_up;
