@@ -3,8 +3,8 @@
 # 3. setup docker --> DONE
 # 4. install dependencies- go mod tidy -> DONE
 # 5. build the app - make build --DONE
-# 6. database up and migrate db- make test_db_up, make migrate_test_up.
-# 7. pass env variables to test file
+# 6. database up and migrate db- make test_db_up, make migrate_test_up. -> DONE
+# 7. pass env variables to test file -> DONE
 #     DB_HOST=db
 #     DB_PASS=ahl@123
 #     DB_PORT=5432
@@ -25,20 +25,25 @@ jobs:
     steps: 
       - name: Clone Code
         uses: actions/checkout@v7
+
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
           go-version-file: 'go.mod'
+
       - name: Setup Docker
         uses: docker/setup-docker-action@v5
+
       - name: Install golang-migrate CLI
         run: |
           curl -L https://github.com/golang-migrate/migrate/releases/download/v4.19.1/migrate.linux-amd64.tar.gz | tar xvz
           mv migrate /usr/local/bin
+
       - name: Build App
         run: make build
+
       - name: Start DB
-        run: make test_db_up;
+        run: make test_db_up
 
       - name: Check if DB is up
         timeout-minutes: 2
@@ -48,26 +53,29 @@ jobs:
             sleep 1
           done
           echo "Postgres is up!"
-
         env:
           TEST_DB_HOST: 'localhost'
           TEST_DB_PASS: 'dummy'
           TEST_DB_PORT: '5432'
-          TEST_DB_NAME: 'postgres'
+          TEST_DB_NAME: 'students_test'
           TEST_DB_USER: 'postgres'
           SSL_MODE: 'disable'
           PORT: ':8080'           
 
       - name: Run DB Migrations
-        run: make migrate_test_up || true
+        run: make migrate_test_up
         env:
           TEST_DB_HOST: 'localhost'
           TEST_DB_PASS: 'dummy'
           TEST_DB_PORT: '5432'
-          TEST_DB_NAME: 'postgres'
+          TEST_DB_NAME: 'students_test'
           TEST_DB_USER: 'postgres'
           SSL_MODE: 'disable'
           PORT: ':8080'
-      - name: Setup Session
-        uses: lhotari/action-upterm@v1      
+
+      - name: Run Tests
+        run: make test
+
+      # - name: Setup Session
+      #   uses: lhotari/action-upterm@v1      
 

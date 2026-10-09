@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 		DBPort:  5432,
 		DBUser:  "postgres",
 		DBPass:  "dummy",
-		DBName:  "postgres",
+		DBName:  "students_test",
 		SSLMode: "disable",
 	}
 
