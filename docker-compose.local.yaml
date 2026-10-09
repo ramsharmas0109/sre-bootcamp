@@ -1,24 +1,24 @@
 services:
-  db:
-    image: postgres:18.6
+  test_db:
+    image: postgres
     restart: always
     ports:
-      - "5555:5432"
+      - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: ahl@123
-    volumes:
-      - student-db:/var/lib/postgresql
+      POSTGRES_PASSWORD: dummy
+      POSTGRES_DB: students_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
   student-rest-api:
-    image: ramkaushik/student-rest-api:v1.0.0
+    image: postgres
     restart: always
     ports:
-      - "8080:8080"
-    env_file: .env
-    depends_on:
-      - db
-
-volumes:
-  student-db:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: dummy
 
 # Host machine -> Mac
 

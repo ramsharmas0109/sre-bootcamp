@@ -1,0 +1,19 @@
+FROM golang:1.26-alpine AS builder
+
+WORKDIR /student-api
+
+COPY . .
+
+RUN apk add --no-cache make curl; \
+    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.20.1/migrate.linux-amd64.tar.gz | tar xvz; \
+    mv migrate /usr/bin
+
+RUN go mod tidy
+
+RUN go build -o bin/app main.go
+
+FROM alpine:3.24
+
+COPY --from=builder /student-api/bin/app .
+
+CMD ["./app"]
