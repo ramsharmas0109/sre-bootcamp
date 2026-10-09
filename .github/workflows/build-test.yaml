@@ -1,0 +1,27 @@
+# 1. down the application code- git clone 
+# 2. go compiler should be installed on my machine - brew install
+# 3. setup docker
+# 4. install dependencies- go mod tidy
+# 5. build the app - make build
+# 6. database up and migrate db- make test_db_up, make migrate_test_up.
+# 7. pass env variables to test file
+#     DB_HOST=db
+#     DB_PASS=ahl@123
+#     DB_PORT=5432
+#     DB_NAME=students
+#     DB_USER=postgres
+#     SSL_MODE=disable
+#     PORT=:8080 
+# 8. run the tests - make tests
+
+name: Go Build and Test
+
+on:
+  push:
+
+job:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Clone Code
+        uses: actions/checkout@v7
