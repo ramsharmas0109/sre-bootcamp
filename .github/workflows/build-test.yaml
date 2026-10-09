@@ -38,12 +38,9 @@ jobs:
       - name: Build App
         run: make build
       - name: Start DB
-        run: | 
-          make test_db_up;
+        run: make test_db_up;
+      - name: Run DB Migrations
+        run: make migrate_test_up
       - name: Setup Session
         uses: lhotari/action-upterm@v1      
-      # - name: Run DB Migrations
-      #   run: | 
-          # docker ps;
-          # telnet localhost 5432;
-          # make migrate_test_up;
+
