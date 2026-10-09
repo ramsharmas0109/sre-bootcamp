@@ -2,7 +2,7 @@
 # 2. go compiler should be installed on my machine - brew install -> DONE
 # 3. setup docker --> DONE
 # 4. install dependencies- go mod tidy -> DONE
-# 5. build the app - make build
+# 5. build the app - make build --DONE
 # 6. database up and migrate db- make test_db_up, make migrate_test_up.
 # 7. pass env variables to test file
 #     DB_HOST=db
@@ -33,3 +33,7 @@ jobs:
         uses: docker/setup-docker-action@v5
       - name: Build App
         run: make build
+      - name: Setup DB
+        run: | 
+          make test_db_up;
+          make migrate_test_up
