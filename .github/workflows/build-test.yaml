@@ -48,7 +48,17 @@ jobs:
           TEST_DB_NAME: 'postgres'
           TEST_DB_USER: 'postgres'
           SSL_MODE: 'disable'
-          PORT: ':8080' 
+          PORT: ':8080'
+      - name: Check if DB is up
+        run: pg_isready --quiet
+        env:
+          TEST_DB_HOST: 'localhost'
+          TEST_DB_PASS: 'dummy'
+          TEST_DB_PORT: '5432'
+          TEST_DB_NAME: 'postgres'
+          TEST_DB_USER: 'postgres'
+          SSL_MODE: 'disable'
+          PORT: ':8080'           
       - name: Setup Session
         uses: lhotari/action-upterm@v1      
 
