@@ -23,4 +23,4 @@ jobs:
         run: |
           SHORT_SHA="${GITHUB_SHA:0:6}"
           echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_ENV
-          docker build -f Dockerfile.advanced -t student-rest-api:${SHORT_SHA}
+          docker build -f Dockerfile.advanced -t student-rest-api:${SHORT_SHA} .
