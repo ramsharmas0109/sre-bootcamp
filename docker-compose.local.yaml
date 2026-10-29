@@ -6,6 +6,12 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: dummy
+      POSTGRES_DB: students_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
   student-rest-api:
     image: postgres
     restart: always
@@ -13,8 +19,6 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: dummy
-
-
 
 # Host machine -> Mac
 
