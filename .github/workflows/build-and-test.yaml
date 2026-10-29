@@ -14,13 +14,13 @@
 #     PORT=:8080 
 # 8. run the tests - make tests
 
-name: Go Build and Test
+name: Build Bin and Test
 
 on:
   push:
 
 jobs:
-  build-and-test:
+  build-and-test: #build binary and test application
     runs-on: ubuntu-latest
     steps: 
       - name: Clone Code

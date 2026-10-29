@@ -1,0 +1,26 @@
+# 1. clone the repo.
+# 2. use dockerfile to build the image (assuming docker is installed)
+# 3. docker scan
+# 4. docker login - need token to push into GHCR
+# 5. push the image to ghcr
+
+
+
+name: Build Docker and Push
+
+on:
+  push:
+
+jobs:
+  build-and-push: #build docker image and push to container registry
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Git Checkout
+        uses: actions/checkout@v7
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v5
+      - name: Build Image
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:6}"
+          echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_ENV
+          docker build -f Dockerfile.advanced -t student-rest-api:${SHORT_SHA}
