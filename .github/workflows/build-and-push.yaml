@@ -24,3 +24,13 @@ jobs:
           SHORT_SHA="${GITHUB_SHA:0:6}"
           echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_ENV
           docker build -f Dockerfile.advanced -t student-rest-api:${SHORT_SHA} .
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_TOKEN }}        
+      - name: Docker Tag
+        run: docker tag student-rest-api:${SHORT_SHA} ramsharmas0109/sre-bootcamp:${SHORT_SHA}
+      - name: Docker Push
+        run: docker push ghcr.io/ramsharmas0109/sre-bootcamp:${SHORT_SHA}
