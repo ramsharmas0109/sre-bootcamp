@@ -1,14 +1,12 @@
-include .env
-export
+# -include .env
+# export
 
 POSTGRESQL_URL = postgres://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(SSL_MODE)
-TEST_POSTGRESQL_URL = postgres://postgres:dummy@localhost:5432/postgres?sslmode=disable
+TEST_POSTGRESQL_URL = postgres://$(TEST_DB_USER):$(TEST_DB_PASS)@$(TEST_DB_HOST):$(TEST_DB_PORT)/$(TEST_DB_NAME)?sslmode=$(SSL_MODE)
 
 test_db_up:
 	@echo "Starting test DB..."
-	docker compose up -d test_db
-	@echo "Waiting for test DB to be ready..."
-	@for i in $$(seq 30); do docker compose exec -T test_db pg_isready -U postgres > /dev/null 2>&1 && exit 0; sleep 1; done; echo "Test DB did not become ready in time"; exit 1
+	docker compose -f docker-compose.local.yaml up -d test_db
 
 test_db_down:
 	@echo "Stopping test DB..."
@@ -22,7 +20,10 @@ migrate_test_down:
 	@echo "Running migrations on test DB..."
 	migrate -database "$(TEST_POSTGRESQL_URL)" -path migrations down
 
-test: test_db_up migrate_test_up
+configure_test_env: test_db_up migrate_test_up
+	@echo "Configuring test environment..."
+
+test:
 	@echo "Running tests..."
 	go test -v ./internal/handler
 

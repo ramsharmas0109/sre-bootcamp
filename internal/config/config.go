@@ -4,9 +4,10 @@ import (
 	"os"
 	"strconv"
 
+	"srebootcamp/internal/model"
+
 	"github.com/joho/godotenv"
 	"github.com/projectdiscovery/gologger"
-	"srebootcamp/internal/model"
 )
 
 func convert(input string) int {
@@ -20,7 +21,7 @@ func convert(input string) int {
 func LoadConfig() model.Config {
 	err := godotenv.Load()
 	if err != nil {
-		gologger.Fatal().Msg("Error loading .env file")
+		gologger.Info().Msg("Error loading .env file, reading from env variables")
 	}
 
 	cfg := model.Config{}
