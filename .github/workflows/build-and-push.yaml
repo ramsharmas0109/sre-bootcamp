@@ -25,7 +25,7 @@ jobs:
           echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_ENV
           docker build -f Dockerfile.advanced -t student-rest-api:${SHORT_SHA} .
       - name: Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: student-rest-api:${{ env.SHORT_SHA }}
           format: table
