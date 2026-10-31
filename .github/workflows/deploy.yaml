@@ -22,6 +22,7 @@ env:
 jobs:
   deployment:
     # runs-on: self-hosted
+    environment: PROD
     runs-on: ubuntu-latest
     steps:
       - name: Git Checkout
@@ -39,7 +40,7 @@ jobs:
           mv migrate /usr/local/bin
 
       - name: Run DB Migrations
-        run: make migrate_test_up || true
+        run: make migrate_up
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PASS: ${{ secrets.DB_PASS }}
@@ -49,36 +50,36 @@ jobs:
           SSL_MODE: ${{ secrets.SSL_MODE }}
           PORT: ${{ secrets.PORT }}
   
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
+      # - name: Deploy over SSH
+      #   uses: appleboy/ssh-action@v1.2.5
+      #   with:
+      #     host: ${{ secrets.DEPLOY_HOST }}
+      #     username: ${{ secrets.DEPLOY_USER }}
+      #     key: ${{ secrets.DEPLOY_KEY }}
 
-          script: |
-            set -e
+      #     script: |
+      #       set -e
 
-            echo "${{ secrets.GH_TOKEN }}" | \
-            docker login ghcr.io \
-            -u "${{ secrets.GH_USERNAME }}" \
-            --password-stdin
+      #       echo "${{ secrets.GH_TOKEN }}" | \
+      #       docker login ghcr.io \
+      #       -u "${{ secrets.GH_USERNAME }}" \
+      #       --password-stdin
 
-            echo "Pulling image..."
-            docker pull ghcr.io/ramsharmas0109/sre-bootcamp:${{ inputs.image_tag }}
+      #       echo "Pulling image..."
+      #       docker pull ghcr.io/ramsharmas0109/sre-bootcamp:${{ inputs.image_tag }}
 
-            echo "Updating image tag..."
-            sed -i "s|image: ghcr.io/ramsharmas0109/sre-bootcamp:.*|image: ghcr.io/ramsharmas0109/sre-bootcamp:${{ inputs.image_tag }}|" ${{ env.COMPOSE_FILE }}
+      #       echo "Updating image tag..."
+      #       sed -i "s|image: ghcr.io/ramsharmas0109/sre-bootcamp:.*|image: ghcr.io/ramsharmas0109/sre-bootcamp:${{ inputs.image_tag }}|" ${{ env.COMPOSE_FILE }}
 
-            echo "Updated compose file..."
-            grep "ghcr.io/ramsharmas0109/sre-bootcamp" ${{ env.COMPOSE_FILE }}
+      #       echo "Updated compose file..."
+      #       grep "ghcr.io/ramsharmas0109/sre-bootcamp" ${{ env.COMPOSE_FILE }}
 
-            echo "Starting new container..."
-            docker compose \
-              -f ${{ env.COMPOSE_FILE }} \
-              up -d
+      #       echo "Starting new container..."
+      #       docker compose \
+      #         -f ${{ env.COMPOSE_FILE }} \
+      #         up -d
 
-            echo "Checking application health..."
-            curl --fail http://localhost:8080/healthcheck
+      #       echo "Checking application health..."
+      #       curl --fail http://localhost:8080/healthcheck
 
-            echo "Deployment successful!"
+      #       echo "Deployment successful!"
