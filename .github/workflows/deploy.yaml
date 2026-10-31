@@ -1,0 +1,65 @@
+# 1. clone repo -> git checkout.
+# 2. Setup docker. docker compose and migrate.
+# 3. Connect to DB and run migration
+# 4. Pull the image - use credentials to pull.
+# 5. run the container.
+# 6. docker ps -- check container is up and running.
+
+name : Deploy app
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Docker image tag to deploy"
+        required: true
+        type: string
+        default: "bb9f6b"
+
+env:
+  COMPOSE_FILE: docker-compose.yaml
+
+jobs:
+  deployment:
+    runs-on: self-host-runner
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v5
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v2
+
+      - name: Install golang-migrate CLI
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.19.1/migrate.linux-amd64.tar.gz | tar xvz
+          mv migrate /usr/local/bin
+
+      - name: Run DB Migrations
+        run: make migrate_test_up
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          SSL_MODE: ${{ secrets.SSL_MODE }}
+          PORT: ${{ secrets.PORT }}
+  
+      - name: Update Docker Image
+        run: |
+          sed -i "s|image: ghcr.io/ramsharmas0109/sre-bootcamp:.*|image: ghcr.io/ramsharmas0109/sre-bootcamp:${{ inputs.image_tag }}|" ${{ env.COMPOSE_FILE }}
+          
+      - name: Deploy student-rest-api container
+        run: |
+          docker compose up -d student-rest-api
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          SSL_MODE: ${{ secrets.SSL_MODE }}
+          PORT: ${{ secrets.PORT }}
