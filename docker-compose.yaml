@@ -15,4 +15,4 @@ services:
       DB_USER: ${DB_USER:?required}
       DB_PASS: ${DB_PASS:?required}
       SSL_MODE: ${SSL_MODE:-disable}
-      PORT: ${PORT:-8080}
+      PORT: ${PORT:-:8080}
