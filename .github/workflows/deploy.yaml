@@ -1,10 +1,3 @@
-# 1. clone repo -> git checkout.
-# 2. Setup docker. docker compose and migrate.
-# 3. Connect to DB and run migration
-# 4. Pull the image - use credentials to pull.
-# 5. run the container.
-# 6. docker ps -- check container is up and running.
-
 name : Deploy app
 
 on:
@@ -22,63 +15,68 @@ env:
 jobs:
   deployment:
     # runs-on: self-hosted
+    environment: PROD
     runs-on: ubuntu-latest
     steps:
-      - name: Git Checkout
-        uses: actions/checkout@v7
-
-      - name: Set up Docker
-        uses: docker/setup-docker-action@v5
-
-      - name: Set up Docker Compose
-        uses: docker/setup-compose-action@v2
-
-      - name: Install golang-migrate CLI
-        run: |
-          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.19.1/migrate.linux-amd64.tar.gz | tar xvz
-          mv migrate /usr/local/bin
-
-      - name: Run DB Migrations
-        run: make migrate_test_up || true
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.5
         env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PASS: ${{ secrets.DB_PASS }}
           DB_PORT: ${{ secrets.DB_PORT }}
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           SSL_MODE: ${{ secrets.SSL_MODE }}
-          PORT: ${{ secrets.PORT }}
-  
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.2.5
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_USERNAME: ${{ secrets.GH_USERNAME }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
-
+          envs: IMAGE_TAG,DB_HOST,DB_PASS,DB_PORT,DB_NAME,DB_USER,SSL_MODE,GH_TOKEN,GH_USERNAME
           script: |
             set -e
 
-            echo "${{ secrets.GH_TOKEN }}" | \
-            docker login ghcr.io \
-            -u "${{ secrets.GH_USERNAME }}" \
-            --password-stdin
+            echo "Setup Repo"
+            if [ -d /home/sre-bootcamp/.git ]; then
+              cd /home/sre-bootcamp
+              git restore docker-compose.yaml
+              git pull --ff-only
+            else
+              git clone https://github.com/ramsharmas0109/sre-bootcamp.git /home/sre-bootcamp
+              cd /home/sre-bootcamp
+            fi
 
-            echo "Pulling image..."
-            docker pull ghcr.io/ramsharmas0109/sre-bootcamp:${{ inputs.image_tag }}
+            echo "Setup Migrate Tool"
+            if which migrate >/dev/null 2>&1; then
+              echo "golang-migrate is already installed."
+            else
+              curl -fsSL https://github.com/golang-migrate/migrate/releases/download/v4.19.1/migrate.linux-amd64.tar.gz | tar xz
+              sudo mv migrate /usr/local/bin/
+            fi
 
-            echo "Updating image tag..."
-            sed -i "s|image: ghcr.io/ramsharmas0109/sre-bootcamp:.*|image: ghcr.io/ramsharmas0109/sre-bootcamp:${{ inputs.image_tag }}|" ${{ env.COMPOSE_FILE }}
+            echo "Run DB Migrations"
+            make migrate_up
 
-            echo "Updated compose file..."
+            echo "Authenticate GHCR"
+            echo "$GH_TOKEN" | docker login ghcr.io \
+              -u "$GH_USERNAME" \
+              --password-stdin
+
+            echo "Pull Image"
+            docker pull "ghcr.io/ramsharmas0109/sre-bootcamp:$IMAGE_TAG"
+
+            echo "Update Image Tag"
+            sed -i "s|image: ghcr.io/ramsharmas0109/sre-bootcamp:.*|image: ghcr.io/ramsharmas0109/sre-bootcamp:$IMAGE_TAG|" ${{ env.COMPOSE_FILE }}
+
+            echo "Verify Compose File"
             grep "ghcr.io/ramsharmas0109/sre-bootcamp" ${{ env.COMPOSE_FILE }}
 
-            echo "Starting new container..."
-            docker compose \
-              -f ${{ env.COMPOSE_FILE }} \
-              up -d
+            echo "Start Application Container"
+            docker compose -f ${{ env.COMPOSE_FILE }} up -d student-rest-api
 
-            echo "Checking application health..."
+            echo "Verify Application Health"
             curl --fail http://localhost:8080/healthcheck
 
             echo "Deployment successful!"
